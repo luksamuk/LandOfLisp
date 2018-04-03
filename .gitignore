@@ -2,6 +2,7 @@
 *.dot
 *.png
 *#*#
+*.txt
 city
 known-city
 
