@@ -42,7 +42,7 @@
 ;; Use the commented code below.
 ;; Notice the slight change in relation to the book's
 ;; parameter order.
-;; (defparameter my-stream (socket-connect "127.0.0.1" 4321))
+;; * (defparameter my-stream (socket-connect "127.0.0.1" 4321))
 
 ;; The server should now unlock!
 
