@@ -12,6 +12,11 @@ reminders for better knowing the language and etc. I won't be including build
 instructions nor anything, because there is just no point. To know what I'm
 talking about on each file, take a look at the book.
 
+One more thing to add is that <strong>I am using SBCL for this book,</strong>
+therefore, this may imply that I changed something here and there, since
+SBCL doesn't have CLISP's built-in extensions. For things such as streams,
+for example, I had to use Quicklisp to aid me.
+
 It's an excellent book for a lisper; you should definitely buy it.
 
 ## Relation of files
