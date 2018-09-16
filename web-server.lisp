@@ -99,6 +99,6 @@
   (if (equal path "greeting")
       (let ((name (assoc 'name params)))
         (if (not name)
-            (princ "<form>What is your name?<input name='name' /></form>")
+            (princ name-getting-page)
             (format t "Nice to meet you, ~a!" (cdr name))))
       (princ "Sorry... I don't know that page.")))
