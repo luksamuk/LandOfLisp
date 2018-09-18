@@ -1,6 +1,6 @@
 (defparameter *num-players*  2)
 (defparameter *max-dice*     3)
-(defparameter *board-size*   2)
+(defparameter *board-size*   3)
 (defparameter *board-hexnum* (* *board-size* *board-size*))
 
 
@@ -75,27 +75,29 @@
        when (and (>= p 0)
 		 (< p *board-hexnum*))
        collect p)))
-
+      
 (defun board-attack (board player src dst dice)
   (board-array (loop for pos from 0
 		  for hex across board
 		  collect (cond ((eq pos src) (list player 1))
 				((eq pos dst) (list player (1- dice)))
 				(t hex)))))
-(defun add-new-dice (board player spare-dice)
-  (labels ((f (list n)
-	     (cond ((null list) nil)
-		   ((zerop n) list)
-		   (t (let ((cur-player (caar list))
-			    (cur-dice (cadar list)))
-			(if (and (eq cur-player player)
-				 (< cur-dice *max-dice*))
-			    (cons (list cur-player (1+ cur-dice))
-				  (f (cdr list) (1- n)))
-			    (cons (car list)
-				  (f (cdr list) n))))))))
-    (board-array (f (coerce board 'list)
-		    spare-dice))))
+
+;; Unoptimized
+;; (defun add-new-dice (board player spare-dice)
+;;   (labels ((f (list n)
+;; 	     (cond ((null list) nil)
+;; 		   ((zerop n) list)
+;; 		   (t (let ((cur-player (caar list))
+;; 			    (cur-dice (cadar list)))
+;; 			(if (and (eq cur-player player)
+;; 				 (< cur-dice *max-dice*))
+;; 			    (cons (list cur-player (1+ cur-dice))
+;; 				  (f (cdr list) (1- n)))
+;; 			    (cons (car list)
+;; 				  (f (cdr list) n))))))))
+;;     (board-array (f (coerce board 'list)
+;; 		    spare-dice))))
 
 
 ;; Safe position:
@@ -181,4 +183,56 @@
 	((zerop (car tree))  (play-vs-computer (handle-human tree)))
 	(t                   (play-vs-computer (handle-computer tree)))))
 
+
+;; Memoization
+
+(let ((old-neighbors (symbol-function 'neighbors))
+      (previous (make-hash-table)))
+  (defun neighbors (pos)
+    (or (gethash pos previous)
+	(setf (gethash pos previous)
+	      (funcall old-neighbors pos)))))
+
+(let ((old-game-tree (symbol-function 'game-tree))
+      (previous (make-hash-table :test #'equalp)))
+  (defun game-tree (&rest rest)
+    (or (gethash rest previous)
+	(setf (gethash rest previous)
+	      (apply old-game-tree rest)))))
+
+(let ((old-rate-position (symbol-function 'rate-position))
+      (previous (make-hash-table)))
+  (defun rate-position (tree player)
+    (let ((tab (gethash player previous)))
+      (unless tab
+	(setf tab
+	      (setf (gethash player previous)
+		    (make-hash-table))))
+      (or (gethash tree tab)
+	  (setf (gethash tree tab)
+		(funcall old-rate-position tree player))))))
+
+;; tail call optimization
+
+(defun add-new-dice (board player spare-dice)
+  (labels ((f (list n acc)
+	     (cond ((zerop n)   (append (reverse acc) list))
+		   ((null list) (reverse acc))
+		   (t (let ((cur-player (caar list))
+			    (cur-dice (cadar list)))
+			(if (and (eq cur-player player)
+				 (< cur-dice *max-dice*))
+			    (f (cdr list)
+			       (1- n)
+			       (cons (list cur-player (1+ cur-dice)) acc))
+			    (f (cdr list)
+			       n
+			       (cons (car list) acc))))))))
+    (board-array (f (coerce board 'list)
+		    spare-dice
+		    nil))))
+
+;; optimize if running under CLISP
+#+CLISP
+(compile 'add-new-dice)
 
