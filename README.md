@@ -35,7 +35,10 @@ Files listed as per order of creation.
 - `streams.lisp` (Chapter 12)
 - `web-server.lisp` (Chapter 13)
 - `dice-of-doom.lisp` (Chapter 15)
+- `macros.lisp` (Chapter 16)
 
+## Other links
+- [SLIME features](https://www.cliki.net/SLIME%20Features)
 
 
 [![Warning: Built Using Lisp](http://www.lisperati.com/lisplogo_warning2_256.png)](http://www.lisperati.com/logo.html)
