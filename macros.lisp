@@ -93,12 +93,12 @@
 
 ;; Macro usage from book to test.
 ;; Macroexpand on SLIME with C-c M-m
-(recurse (n 9)
-  (fresh-line)
-  (if (zerop n)
-      (princ "lift off!")
-      (progn (princ n)
-	     (self (1- n)))))
+;; (recurse (n 9)
+;;   (fresh-line)
+;;   (if (zerop n)
+;;       (princ "lift off!")
+;;       (progn (princ n)
+;; 	     (self (1- n)))))
 
 
 ;; Now we can...

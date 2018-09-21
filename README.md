@@ -36,6 +36,7 @@ Files listed as per order of creation.
 - `web-server.lisp` (Chapter 13)
 - `dice-of-doom.lisp` (Chapter 15)
 - `macros.lisp` (Chapter 16)
+- `svg.lisp` (Chapter 17)
 
 ## Other links
 - [SLIME features](https://www.cliki.net/SLIME%20Features)
