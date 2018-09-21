@@ -1,0 +1,2 @@
+(load "wizards-game.lisp")
+

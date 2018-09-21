@@ -24,7 +24,7 @@ It's an excellent book for a lisper; you should definitely buy it.
 Files listed as per order of creation.
 
 - `guess-my-number.lisp` (Chapter 2)
-- `text-game-engine.lisp` (Chapter 5)
+- `wizards-game.lisp` (Chapter 5)
 - `graph-util.lisp` (Chapter 7)
 - `grand-theft-wumpus.lisp` (Chapter 8)
 - `datatypes-generics.lisp` (Chapter 9)
@@ -37,6 +37,7 @@ Files listed as per order of creation.
 - `dice-of-doom.lisp` (Chapter 15)
 - `macros.lisp` (Chapter 16)
 - `svg.lisp` (Chapter 17)
+- `wizards-game-v2.lisp` (Chapter 17)
 
 ## Other links
 - [SLIME features](https://www.cliki.net/SLIME%20Features)
