@@ -64,8 +64,8 @@
        (if ,g
 	   (let ((head (car ,g))
 		 (tail (cdr ,g)))
-	     ,yes
-	     ,no)))))
+	     ,yes)
+	   ,no))))
 
 ;; Testing.
 (macroexpand '(split '(2 3)
@@ -73,5 +73,48 @@
 	       nil))
 
 
-;; Stopped on page 350, "A Recursion Macro"
+
+;; Recursion macro
+(defun pairs (list)
+  (labels ((f (list acc)
+	     (split list
+		    (if tail
+			(f (cdr tail) (cons (cons head (car tail)) acc))
+			(reverse acc))
+		    (reverse acc))))
+    (f list nil)))
+
+
+(defmacro recurse (vars &body body)
+  (let1 p (pairs vars)
+    `(labels ((self ,(mapcar #'car p)
+		,@body))
+       (self ,@(mapcar #'cdr p)))))
+
+;; Macro usage from book to test.
+;; Macroexpand on SLIME with C-c M-m
+(recurse (n 9)
+  (fresh-line)
+  (if (zerop n)
+      (princ "lift off!")
+      (progn (princ n)
+	     (self (1- n)))))
+
+
+;; Now we can...
+(defun my-length (list)
+  (recurse (list list  acc 0)
+    (split list
+	   (self tail (1+ acc))
+	   acc)))
+
+
+
+;; However, might be cleaner if we just...
+(defun my-length (list)
+  (reduce (lambda (x i)
+	    (1+ x))
+	  list
+	  :initial-value 0))
+
 
