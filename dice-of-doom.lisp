@@ -56,7 +56,11 @@
 				     (> (dice src) (dice dst)))
 			    (list
 			     (list (list src dst)
-				   (game-tree (board-attack board cur-player src dst (dice src))
+				   (game-tree (board-attack board
+							    cur-player
+							    src
+							    dst
+							    (dice src))
 					      cur-player
 					      (+ spare-dice (dice dst))
 					      nil)))))

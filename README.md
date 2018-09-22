@@ -39,6 +39,7 @@ Files listed as per order of creation.
 - `svg.lisp` (Chapter 17)
 - `wizards-game-v2.lisp` (Chapter 17)
 - `lazy.lisp` (Chapter 18)
+- `dice-of-doom-v2.lisp` (Chapter 18)
 
 
 ## Other links
