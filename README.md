@@ -38,6 +38,8 @@ Files listed as per order of creation.
 - `macros.lisp` (Chapter 16)
 - `svg.lisp` (Chapter 17)
 - `wizards-game-v2.lisp` (Chapter 17)
+- `lazy.lisp` (Chapter 18)
+
 
 ## Other links
 - [SLIME features](https://www.cliki.net/SLIME%20Features)
