@@ -72,3 +72,135 @@
 
 ;; Test by evaluating this
 ;; (play-vs-human (game-tree (gen-board) 0 0 t))
+
+(defun limit-tree-depth (tree depth)
+  (list (car tree)
+	(cadr tree)
+	(if (zerop depth)
+	    (lazy-nil)
+	    (lazy-mapcar (lambda (move)
+			   (list (car move)
+				 (limit-tree-depth (cadr move)
+						   (1- depth))))
+			 (caddr tree)))))
+
+(defparameter *ai-level* 4)
+
+;; Tweaked functions
+(defun handle-computer (tree)
+  (let ((ratings (get-ratings (limit-tree-depth tree *ai-level*) ;; trim tree
+			      (car tree))))
+    (cadr (lazy-nth (position (apply #'max ratings) ;; use lazy-nth
+			      ratings)
+		    (caddr tree)))))
+
+(defun play-vs-computer (tree)
+  (print-info tree)
+  (cond ((lazy-null (caddr tree)) (announce-winner (cadr tree))) ; use lazy-null
+	((zerop (car tree))       (play-vs-computer (handle-human tree)))
+	(t                        (play-vs-computer (handle-computer tree)))))
+
+;; AI Heuristics.
+;; Guarantees 65~70% of all wins on newly-trimmed tree
+
+(defun score-board (board player)
+  (loop for hex across board
+     for pos from 0
+     sum (if (eq (car hex) player)
+	     (if (threatened pos board)
+		 1
+		 2)
+	     -1)))
+
+(defun threatened (pos board)
+  (let* ((hex (aref board pos))
+	 (player (car hex))
+	 (dice (cadr hex)))
+    (loop for n in (neighbors pos)
+       do (let* ((nhex (aref board n))
+		 (nplayer (car nhex))
+		 (ndice (cadr nhex)))
+	    (when (and (not (eq player nplayer))
+		       (> ndice dice))
+	      (return t))))))
+
+;; Tweak rating functions to use heuristics.
+
+(defun rate-position (tree player)
+  (let ((moves (caddr tree)))
+    (if (not (lazy-null moves)) ;; update for lazy game tree
+	(apply (if (eq (car tree) player)
+		   #'max
+		   #'min)
+	       (get-ratings tree player))
+	(score-board (cadr tree) player)))) ;; use new score function
+	
+
+(defun get-ratings (tree player)
+  (take-all
+   (lazy-mapcar (lambda (move) ;; update for lazy game tree
+		  (rate-position (cadr move) player))
+		(caddr tree))))
+
+;; Test again by evaluating this
+;; (play-vs-human (game-tree (gen-board) 0 0 t))
+
+;; alpha-beta prunning
+
+(defun ab-get-ratings-max (tree player upper-limit lower-limit)
+  (labels ((f (moves lower-limit)
+	     (unless (lazy-null moves)
+	       (let ((x (ab-rate-position (cadr (lazy-car moves))
+					  player
+					  upper-limit
+					  lower-limit)))
+		 (if (>= x upper-limit)
+		     (list x)
+		     (cons x (f (lazy-cdr moves)
+				(max x lower-limit))))))))
+    (f (caddr tree) lower-limit)))
+
+(defun ab-get-ratings-min (tree player upper-limit lower-limit)
+  (labels ((f (moves upper-limit)
+	     (unless (lazy-null moves)
+	       (let ((x (ab-rate-position (cadr (lazy-car moves))
+					  player
+					  upper-limit
+					  lower-limit)))
+		 (if (<= x lower-limit)
+		     (list x)
+		     (cons x (f (lazy-cdr moves)
+				(min x upper-limit))))))))
+    (f (caddr tree) upper-limit)))
+
+(defun ab-rate-position (tree player upper-limit lower-limit)
+  (let ((moves (caddr tree)))
+    (if (not (lazy-null moves))
+	(if (eq (car tree) player)
+	    (apply #'max (ab-get-ratings-max tree
+					     player
+					     upper-limit
+					     lower-limit))
+	    (apply #'min (ab-get-ratings-min tree
+					     player
+					     upper-limit
+					     lower-limit)))
+	(score-board (cadr tree) player))))
+
+;; One more tweak to handle-computer so we use alpha-beta prunning
+(defun handle-computer (tree)
+  (let ((ratings (ab-get-ratings-max (limit-tree-depth tree *ai-level*)
+				     (car tree)
+				     most-positive-fixnum    ;; ANSI CL
+				     most-negative-fixnum))) ;; ANSI CL
+    (cadr (lazy-nth (position (apply #'max ratings) ratings)
+		    (caddr tree)))))
+
+
+;; Now we can...
+(defparameter *board-size* 5)
+(defparameter *board-hexnum* (* *board-size* *board-size*))
+
+
+;; Eval for a final test
+;; (play-vs-human (game-tree (gen-board) 0 0 t))
