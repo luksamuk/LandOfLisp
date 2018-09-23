@@ -226,7 +226,6 @@
 	(tag center ()
 	  (tag h1 ()
   	    (princ "DICE OF DOOM"))
-  	  ;; (tag br ())
   	  (let ((chosen (hunchentoot:get-parameter "chosen")))
   	    (when (or (not *cur-game-tree*)
   	     	      (not chosen))
@@ -252,3 +251,12 @@
 
 ;; Evaluate to play
 ;; (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
+
+(let ((game-acceptor (make-instance 'hunchentoot:easy-acceptor :port 8080)))
+  (defun start-dod-server ()
+    "This is an extra function to start the webserver for Dice of Doom."
+    (hunchentoot:start game-acceptor))
+  (defun stop-dod-server ()
+    "This is an extra function to stop an already started webserver for
+Dice of Doom."
+    (hunchentoot:stop game-acceptor)))

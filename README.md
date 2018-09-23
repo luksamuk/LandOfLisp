@@ -33,7 +33,7 @@ Files listed as per order of creation.
 - `evolution-game.lisp` (Chapter 10)
 - `attack-of-the-robots.lisp` (Chapter 11)
 - `streams.lisp` (Chapter 12)
-- `web-server.lisp` (Chapter 13)
+- `web-server.lisp` (Chapter 13) [do not use!]
 - `dice-of-doom.lisp` (Chapter 15)
 - `macros.lisp` (Chapter 16)
 - `svg.lisp` (Chapter 17)
