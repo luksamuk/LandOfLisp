@@ -40,6 +40,7 @@ Files listed as per order of creation.
 - `wizards-game-v2.lisp` (Chapter 17)
 - `lazy.lisp` (Chapter 18)
 - `dice-of-doom-v2.lisp` (Chapter 18)
+- `dice-of-doom-v3.lisp` (Chapter 19)
 
 
 ## Other links
