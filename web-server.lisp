@@ -2,6 +2,16 @@
 ;; So yeah... yeah.
 (ql:quickload 'usocket)
 
+;; WARNING: DO NOT USE THIS CODE!
+;; This implementation incurs in broken pipes everywhere.
+;; Also, it is not suited for modern browsers. This implementation
+;; ends up either rendered as plain text or end up with a broken
+;; pipe.
+;; For a solid way to serve programatically-generated HTML in
+;; Common Lisp, see HUNCHENTOOT
+;; (http://quickdocs.org/hunchentoot/api)
+
+
 ;; Links and requests parser
 
 (defun http-char (c1 c2 &optional (default #\space))

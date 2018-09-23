@@ -1,5 +1,5 @@
 (load "dice-of-doom-v2.lisp")
-(load "web-server.lisp")
+;; (load "web-server.lisp") ;; Do not use. See below.
 (load "svg.lisp")
 
 (defparameter *board-width* 900)
@@ -103,3 +103,152 @@
 ;; 		 :if-exists :supersede)
 ;;   (svg *board-width* *board-height*
 ;;     (draw-board-svg (gen-board) nil nil)))
+
+
+;; Web request handler
+
+(defparameter *cur-game-tree* nil)
+(defparameter *from-tile* nil)
+
+
+;; NOTICE: THIS DOES NOT WORK AS INTENDED. If you want to run
+;; Dice of Doom, check the Hunchentoot implementation below.
+;; (defun dod-request-handler (path header params)
+;;   (if (equal path "game.html")
+;;       (progn (princ "<!DOCTYPE html>")
+;; 		 (tag center ()
+;; 		   (princ "Welcome to DICE OF DOOM!")
+;; 		   (tag br ())
+;; 		   (let ((chosen (assoc 'chosen params)))
+;; 		     (when (or (not *cur-game-tree*)
+;; 			       (not chosen))
+;; 		       (setf chosen nil)
+;; 		       (web-initialize))
+;; 		     (cond ((lazy-null (caddr *cur-game-tree*))
+;; 			    (web-announce-winner (cadr *cur-game-tree*)))
+;; 			   ((zerop (car *cur-game-tree*))
+;; 			    (web-handle-human
+;; 			     (when chosen
+;; 			       (read-from-string (cdr chosen)))))
+;; 			   (t (web-handle-computer))))
+;; 		   (tag br ())
+;; 		   (draw-dod-page *cur-game-tree* *from-tile*)))
+;; 	       (princ "Sorry... I don't know that page.")))
+
+(defun web-initialize ()
+  (setf *from-tile* nil)
+  (setf *cur-game-tree* (game-tree (gen-board) 0 0 t)))
+
+(defun web-announce-winner (board)
+  (fresh-line)
+  (let ((w (winners board)))
+    (if (> (length w) 1)
+	(format t "The game is a tie between ~a! " (mapcar #'player-letter w))
+	(format t "The winner is ~a! " (player-letter (car w)))))
+  (tag a (href "game.html")
+    (princ " play again")))
+
+(defun web-handle-human (pos)
+  (cond ((not pos) (princ "Please choose a hex to move from:"))
+	((eq pos 'pass)
+	 (setf *cur-game-tree*
+	       (cadr (lazy-car (caddr *cur-game-tree*))))
+	 (princ "Your reinforcements have been placed. ")
+	 (tag a (href (make-game-link nil))
+	   (princ "continue")))
+	((not *from-tile*)
+	 (setf *from-tile* pos)
+	 (princ "Now choose a destination:"))
+	((eq pos *from-tile*)
+	 (setf *from-tile* nil)
+	 (princ "Move cancelled."))
+	(t (setf *cur-game-tree*
+		 (cadr (lazy-find-if (lambda (move)
+				       (equal (car move)
+					      (list *from-tile* pos)))
+				     (caddr *cur-game-tree*))))
+	   (setf *from-tile* nil)
+	   (princ "You may now ")
+	   (tag a (href (make-game-link 'pass))
+	     (princ "pass"))
+	   (princ " or make another move:"))))
+
+(defun web-handle-computer ()
+  (setf *cur-game-tree* (handle-computer *cur-game-tree*))
+  (princ "The computer has moved. ")
+  (tag script ()
+    (princ
+     ;; Time reduced so the game has a faster pace
+     "window.setTimeout('window.location=\"game.html?chosen=NIL\"', 3000)")))
+
+
+
+(defun draw-dod-page (tree selected-tile)
+  (svg *board-width* *board-height*
+    (draw-board-svg (cadr tree)
+		    selected-tile
+		    (take-all (if selected-tile
+				  (lazy-mapcar (lambda (move)
+						 (when (eql (caar move)
+							    selected-tile)
+						   (cadar move)))
+					       (caddr tree))
+				  (lazy-mapcar #'caar (caddr tree)))))))
+    
+
+;; Evaluate this to play (actually... don't).
+;; See a HUNCHENTOOT implementation below
+;; (serve #'dod-request-handler)
+
+
+;; EXTRA: We attempt to make this work properly by using Hunchentoot.
+;; Long live Quicklisp.
+(ql:quickload :hunchentoot)
+
+;; This implementation inherits some problems from the original one:
+;; - Does not scale for multiple players on same server.
+;;   We could reimplement part of the game storing each tree
+;;   in a hash-table, with a player-related key.
+;; - Using read-from-string may incur in arbitrary code execution.
+;;   Find a solution for this.
+(hunchentoot:define-easy-handler (game :uri "/game.html") ()
+  (with-output-to-string (*standard-output*)
+    (princ "<!DOCTYPE html>")
+    (tag html () ;; Important HTML tag
+      (tag head () ;; Added header for obvious reasons
+	(princ "<meta charset=\"utf-8\">")
+	(princ "<meta name=\"viewport\" ")
+	(princ "content=\"width=device-width, initial-scale=1.0\">")
+	(tag title () (princ "Dice of Doom")))
+      (tag body () ;; Body tag also helps
+	;; The rest below is taken straight from the book, except
+	;; we don't handle requests to other pages
+	(tag center ()
+	  (tag h1 ()
+  	    (princ "DICE OF DOOM"))
+  	  ;; (tag br ())
+  	  (let ((chosen (hunchentoot:get-parameter "chosen")))
+  	    (when (or (not *cur-game-tree*)
+  	     	      (not chosen))
+  	      (setf chosen nil)
+  	      (web-initialize))
+  	    (cond ((lazy-null (caddr *cur-game-tree*))
+  	     	   (web-announce-winner (cadr *cur-game-tree*)))
+  	     	  ((zerop (car *cur-game-tree*))
+  	     	   (web-handle-human
+  	     	    (when chosen ;; diff: chosen is a string and not a cons here
+  	     	      (read-from-string chosen))))
+  	     	  (t (web-handle-computer))))
+  	  (tag br ())
+  	  (draw-dod-page *cur-game-tree* *from-tile*)
+	  (tag footer ()
+	    (tag p ()
+	      (princ "Programmed by ")
+	      (tag a ("href" "https://luksamuk.gitlab.io")
+		(princ "Lucas Vieira")))
+	    (tag p ()
+	      (princ "Original code from the book Land of Lisp ")
+	      (princ "by Conrad Barski, M.D."))))))))
+
+;; Evaluate to play
+;; (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
