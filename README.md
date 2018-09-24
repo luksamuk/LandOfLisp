@@ -19,6 +19,30 @@ for example, I had to use Quicklisp to aid me.
 
 It's an excellent book for a lisper; you should definitely buy it.
 
+## Important notes
+
+Since everything was implemented under Emacs+SLIME using SBCL as default
+implementation, it is obvious that not everything on the book will work
+flawlessly, specially the web server implementation.
+
+There are plenty of notes about it on the files, but it may be worth saying
+it here once more.
+
+The streams and web server implementations, which made heavy use of CLISP
+extensions, were tweaked to use the `usocket` system.
+
+The web server implementation, though, is not consistent and does not play
+well with modern browsers, therefore I used `hunchentoot` in order to
+serve and handle URLs on Dice of Doom.
+
+Both of these systems can be obtained from *Quicklisp*, so if you're a newbie
+with not much experience, you should definitely start by setting up Quicklisp
+along with your favorite Common Lisp implementation.
+
+Links to this awesome Quicklisp tool (by Zach Beane) and to `usocket` and
+`hunchentoot` (both by Eitaro Fukamachi) documentations are available below.
+
+
 ## Relation of files
 
 Files listed as per order of creation.
@@ -41,10 +65,14 @@ Files listed as per order of creation.
 - `lazy.lisp` (Chapter 18)
 - `dice-of-doom-v2.lisp` (Chapter 18)
 - `dice-of-doom-v3.lisp` (Chapter 19)
+- `dice-of-doom-v4.lisp` (Chapter 20)
 
 
 ## Other links
 - [SLIME features](https://www.cliki.net/SLIME%20Features)
+- [Quicklisp](https://www.quicklisp.org/beta/)
+- [usocket](http://quickdocs.org/usocket/)
+- [hunchentoot](http://quickdocs.org/hunchentoot/)
 
 
 [![Warning: Built Using Lisp](http://www.lisperati.com/lisplogo_warning2_256.png)](http://www.lisperati.com/logo.html)
